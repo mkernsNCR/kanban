@@ -167,6 +167,18 @@ describe('validateBoardData', () => {
     ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
   });
 
+  it('rejects NaN nextTicketNumber', () => {
+    expect(
+      validateBoardData({ ...validBoard, nextTicketNumber: NaN }),
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+  });
+
+  it('rejects Infinity nextTicketNumber', () => {
+    expect(
+      validateBoardData({ ...validBoard, nextTicketNumber: Infinity }),
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+  });
+
   // --- labelColors ---
 
   it('rejects missing labelColors', () => {

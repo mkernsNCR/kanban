@@ -1,4 +1,12 @@
-export const validBoard = {
+const deepFreeze = (obj) => {
+  Object.freeze(obj);
+  Object.values(obj).forEach((v) => {
+    if (v && typeof v === 'object' && !Object.isFrozen(v)) deepFreeze(v);
+  });
+  return obj;
+};
+
+export const validBoard = deepFreeze({
   columns: [
     { id: 'backlog', title: 'BACKLOG', cardIds: ['TKT-001'] },
     { id: 'done', title: 'DONE', cardIds: [] },
@@ -16,4 +24,4 @@ export const validBoard = {
   },
   nextTicketNumber: 2,
   labelColors: { bug: '#D62828', feature: '#06A77D' },
-};
+});

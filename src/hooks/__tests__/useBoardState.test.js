@@ -315,8 +315,9 @@ describe('useBoardState', () => {
       const { result } = renderHook(() => useBoardState());
 
       const clickSpy = vi.fn();
+      const setAttributeSpy = vi.fn();
       const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue({
-        setAttribute: vi.fn(),
+        setAttribute: setAttributeSpy,
         click: clickSpy,
       });
 
@@ -325,6 +326,19 @@ describe('useBoardState', () => {
       });
 
       expect(createElementSpy).toHaveBeenCalledWith('a');
+
+      // Verify href was set to a data URI containing the board JSON
+      const hrefCall = setAttributeSpy.mock.calls.find((c) => c[0] === 'href');
+      expect(hrefCall).toBeDefined();
+      const decodedUri = decodeURIComponent(hrefCall[1]);
+      expect(decodedUri).toContain('data:application/json');
+      expect(decodedUri).toContain(JSON.stringify(validBoard, null, 2));
+
+      // Verify download filename
+      const downloadCall = setAttributeSpy.mock.calls.find((c) => c[0] === 'download');
+      expect(downloadCall).toBeDefined();
+      expect(downloadCall[1]).toBe('kanban-board.json');
+
       expect(clickSpy).toHaveBeenCalled();
       createElementSpy.mockRestore();
     });

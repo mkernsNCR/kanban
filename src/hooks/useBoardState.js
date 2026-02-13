@@ -21,11 +21,27 @@ export const validateBoardData = (data) => {
     if (typeof card.title !== 'string') return `Card "${id}" is missing a "title".`;
   }
 
-  if (typeof data.nextTicketNumber !== 'number' || data.nextTicketNumber < 1)
+  if (!Number.isFinite(data.nextTicketNumber) || data.nextTicketNumber < 1)
     return 'Missing or invalid "nextTicketNumber" (must be a positive number).';
 
   if (!data.labelColors || typeof data.labelColors !== 'object' || Array.isArray(data.labelColors))
     return 'Missing or invalid "labelColors" object.';
+
+  // Cross-reference: every cardId in columns must exist in cards
+  const referencedCardIds = new Set();
+  for (const col of data.columns) {
+    for (const cardId of col.cardIds) {
+      if (!data.cards[cardId])
+        return `Column "${col.id}" references unknown card "${cardId}".`;
+      referencedCardIds.add(cardId);
+    }
+  }
+
+  // Orphan check: every card must appear in at least one column
+  for (const cardId of Object.keys(data.cards)) {
+    if (!referencedCardIds.has(cardId))
+      return `Card "${cardId}" is not referenced by any column.`;
+  }
 
   return null;
 };
