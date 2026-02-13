@@ -2,6 +2,34 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DEFAULT_COLUMNS, DEFAULT_LABEL_COLORS, STORAGE_KEY } from '../utils/constants';
 import { SEED_DATA } from '../utils/seedData';
 
+export const validateBoardData = (data) => {
+  if (!data || typeof data !== 'object') return 'Import is not a valid object.';
+
+  if (!Array.isArray(data.columns)) return 'Missing or invalid "columns" array.';
+  for (const col of data.columns) {
+    if (!col || typeof col !== 'object') return 'Each column must be an object.';
+    if (typeof col.id !== 'string' || !col.id) return `Column is missing a valid "id".`;
+    if (typeof col.title !== 'string') return `Column "${col.id}" is missing a "title".`;
+    if (!Array.isArray(col.cardIds)) return `Column "${col.id}" is missing a "cardIds" array.`;
+  }
+
+  if (!data.cards || typeof data.cards !== 'object' || Array.isArray(data.cards))
+    return 'Missing or invalid "cards" object.';
+  for (const [id, card] of Object.entries(data.cards)) {
+    if (!card || typeof card !== 'object') return `Card "${id}" is not a valid object.`;
+    if (typeof card.id !== 'string') return `Card "${id}" is missing an "id".`;
+    if (typeof card.title !== 'string') return `Card "${id}" is missing a "title".`;
+  }
+
+  if (typeof data.nextTicketNumber !== 'number' || data.nextTicketNumber < 1)
+    return 'Missing or invalid "nextTicketNumber" (must be a positive number).';
+
+  if (!data.labelColors || typeof data.labelColors !== 'object' || Array.isArray(data.labelColors))
+    return 'Missing or invalid "labelColors" object.';
+
+  return null;
+};
+
 const createInitialState = () => ({
   columns: DEFAULT_COLUMNS,
   cards: {},
@@ -175,13 +203,18 @@ export const useBoardState = () => {
   }, [boardState]);
 
   const importData = useCallback((jsonString) => {
+    let imported;
     try {
-      const imported = JSON.parse(jsonString);
-      setBoardState(imported);
-      return true;
+      imported = JSON.parse(jsonString);
     } catch {
-      return false;
+      return 'The selected file is not valid JSON.';
     }
+
+    const error = validateBoardData(imported);
+    if (error) return error;
+
+    setBoardState(imported);
+    return true;
   }, []);
 
   return {
