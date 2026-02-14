@@ -18,6 +18,7 @@ export const validateBoardData = (data) => {
   for (const [id, card] of Object.entries(data.cards)) {
     if (!card || typeof card !== 'object') return `Card "${id}" is not a valid object.`;
     if (typeof card.id !== 'string') return `Card "${id}" is missing an "id".`;
+    if (card.id !== id) return `Card key "${id}" does not match card.id "${card.id}".`;
     if (typeof card.title !== 'string') return `Card "${id}" is missing a "title".`;
   }
 

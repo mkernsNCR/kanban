@@ -200,4 +200,30 @@ describe('validateBoardData', () => {
       validateBoardData({ ...validBoard, labelColors: null }),
     ).toBe('Missing or invalid "labelColors" object.');
   });
+
+  // --- Referential integrity ---
+
+  it('rejects a column cardId that is not in the cards map', () => {
+    expect(
+      validateBoardData({
+        ...validBoard,
+        columns: [
+          { id: 'backlog', title: 'BACKLOG', cardIds: ['TKT-001', 'TKT-GHOST'] },
+          { id: 'done', title: 'DONE', cardIds: [] },
+        ],
+      }),
+    ).toBe('Column "backlog" references unknown card "TKT-GHOST".');
+  });
+
+  it('rejects an orphan card not referenced by any column', () => {
+    expect(
+      validateBoardData({
+        ...validBoard,
+        cards: {
+          ...validBoard.cards,
+          'TKT-ORPHAN': { id: 'TKT-ORPHAN', title: 'Orphan' },
+        },
+      }),
+    ).toBe('Card "TKT-ORPHAN" is not referenced by any column.');
+  });
 });

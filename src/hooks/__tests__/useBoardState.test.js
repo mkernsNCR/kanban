@@ -316,10 +316,12 @@ describe('useBoardState', () => {
 
       const clickSpy = vi.fn();
       const setAttributeSpy = vi.fn();
-      const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue({
-        setAttribute: setAttributeSpy,
-        click: clickSpy,
-      });
+      const originalCreateElement = document.createElement.bind(document);
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tag, ...args) =>
+        tag === 'a'
+          ? { setAttribute: setAttributeSpy, click: clickSpy }
+          : originalCreateElement(tag, ...args),
+      );
 
       act(() => {
         result.current.exportData();
