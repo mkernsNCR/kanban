@@ -173,14 +173,41 @@ const AgentBoard = () => {
   useEffect(() => {
     const eventSource = new EventSource('/api/kanban/stream');
 
-    eventSource.onmessage = (event) => {
+    // Helper to update a card in board state
+    const updateCard = (card) => {
+      setBoardState((prev) => {
+        const next = { ...prev };
+        const agent = next[card.agentId];
+        if (!agent) return prev;
+        
+        // Remove card from any existing status column
+        for (const status of Object.keys(agent)) {
+          agent[status] = (agent[status] || []).filter((c) => c.id !== card.id);
+        }
+        // Add to new status column
+        if (!agent[card.status]) agent[card.status] = [];
+        agent[card.status].push(card);
+        
+        return { ...next, [card.agentId]: agent };
+      });
+    };
+
+    // Handle card created/updated events
+    const handleCardEvent = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        setBoardState(data);
+        const card = JSON.parse(event.data);
+        updateCard(card);
       } catch (err) {
         console.error('SSE parse error:', err);
       }
     };
+
+    eventSource.addEventListener('card-created', handleCardEvent);
+    eventSource.addEventListener('card-updated', handleCardEvent);
+    eventSource.addEventListener('card-error', handleCardEvent);
+    eventSource.addEventListener('connected', (event) => {
+      console.log('SSE connected:', event.data);
+    });
 
     eventSource.onerror = (err) => {
       console.error('SSE error:', err);
