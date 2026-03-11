@@ -59,7 +59,7 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
             className="block font-mono text-[10px] font-bold mb-1" 
             style={{ color: COLORS.dark, opacity: 0.5 }}
           >
-            {task.taskId}
+            {task.id}
           </span>
           <h4 
             className="text-[13px] font-bold leading-tight m-0 truncate" 
@@ -98,7 +98,7 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
           <button
             type="button"
             aria-expanded={isExpanded}
-            onClick={() => onToggleExpand(task.taskId)}
+            onClick={() => onToggleExpand(task.id)}
             className="flex items-center gap-1 mt-2 text-[11px] font-bold"
             style={{
               background: 'none',
@@ -177,8 +177,12 @@ const AgentBoard = () => {
     const updateCard = (card) => {
       setBoardState((prev) => {
         const next = { ...prev };
-        const agent = next[card.agentId];
-        if (!agent) return prev;
+        let agent = next[card.agentId];
+        if (!agent) {
+          // Create new agent lane if it doesn't exist
+          agent = {};
+          next[card.agentId] = agent;
+        }
         
         // Remove card from any existing status column
         for (const status of Object.keys(agent)) {
@@ -211,17 +215,17 @@ const AgentBoard = () => {
 
     eventSource.onerror = (err) => {
       console.error('SSE error:', err);
-      eventSource.close();
+      // Don't close - EventSource auto-reconnects on transient failures
     };
 
     return () => eventSource.close();
   }, []);
 
-  const toggleExpand = useCallback((taskId) => {
+  const toggleExpand = useCallback((cardId) => {
     setExpandedTasks((prev) => {
       const next = new Set(prev);
-      if (next.has(taskId)) next.delete(taskId);
-      else next.add(taskId);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
       return next;
     });
   }, []);
@@ -353,10 +357,10 @@ const AgentBoard = () => {
                             ) : (
                               tasks.map((task) => (
                                 <TaskCard
-                                  key={task.taskId}
+                                  key={task.id}
                                   task={task}
                                   isError={isErrorCol}
-                                  isExpanded={expandedTasks.has(task.taskId)}
+                                  isExpanded={expandedTasks.has(task.id)}
                                   onToggleExpand={toggleExpand}
                                   onAcknowledge={handleAcknowledge}
                                 />
