@@ -12,10 +12,10 @@ const TIER_COLORS = {
 
 const STATUS_COLUMNS = ['queued', 'in_progress', 'done', 'error'];
 
-const formatElapsedTime = (startedAt, endedAt) => {
-  if (!startedAt) return '--';
-  const end = endedAt || Date.now();
-  const elapsed = Math.floor((end - new Date(startedAt).getTime()) / 1000);
+const formatElapsedTime = (createdAt, updatedAt) => {
+  if (!createdAt) return '--';
+  const end = updatedAt ? new Date(updatedAt).getTime() : Date.now();
+  const elapsed = Math.floor((end - new Date(createdAt).getTime()) / 1000);
   
   if (elapsed < 60) return `${elapsed}s`;
   if (elapsed < 3600) return `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
@@ -88,14 +88,16 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
           style={{ color: COLORS.dark, opacity: 0.7 }}
         >
           <Clock size={11} />
-          {formatElapsedTime(task.startedAt, task.endedAt)}
+          {formatElapsedTime(task.createdAt, task.updatedAt)}
         </div>
       </div>
 
       {/* Error details - expandable */}
-      {isError && task.error && (
+      {isError && task.errors && task.errors.length > 0 && (
         <>
           <button
+            type="button"
+            aria-expanded={isExpanded}
             onClick={() => onToggleExpand(task.taskId)}
             className="flex items-center gap-1 mt-2 text-[11px] font-bold"
             style={{
@@ -110,8 +112,9 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
             {isExpanded ? 'Hide' : 'Show'} error
           </button>
 
-          {isExpanded && (
+          {isExpanded && task.errors.map((err, idx) => (
             <div 
+              key={idx}
               className="mt-2 p-2 text-[10px] font-mono overflow-x-auto"
               style={{
                 background: '#1A1A1A',
@@ -119,12 +122,16 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
                 border: `2px solid ${COLORS.danger}`,
               }}
             >
-              <pre className="whitespace-pre-wrap break-all">{task.error}</pre>
+              <pre className="whitespace-pre-wrap break-all">{err.message}</pre>
+              {err.stack && (
+                <pre className="whitespace-pre-wrap break-all mt-2 opacity-70">{err.stack}</pre>
+              )}
             </div>
-          )}
+          ))}
 
           {task.status !== 'acknowledged' && (
             <button
+              type="button"
               onClick={() => onAcknowledge(task.taskId)}
               className="flex items-center gap-1 mt-2 px-3 py-1.5 text-[11px] font-bold"
               style={{
