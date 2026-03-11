@@ -21,12 +21,18 @@ function broadcast(event, data) {
   });
 }
 
+const VALID_TIERS = ['alpha', 'bravo', 'charlie', 'delta', 'echo'];
+
 // Create card
 router.post('/cards', (req, res) => {
   const { agentId, taskId, title, payload, tier } = req.body;
   
   if (!agentId || !taskId || !title || !tier) {
     return res.status(400).json({ error: 'Missing required fields: agentId, taskId, title, tier' });
+  }
+
+  if (!VALID_TIERS.includes(tier)) {
+    return res.status(400).json({ error: `Invalid tier: must be one of ${VALID_TIERS.join(', ')}` });
   }
 
   const now = new Date().toISOString();
@@ -105,11 +111,11 @@ router.post('/cards/:id/error', (req, res) => {
 
 // Get board - all cards grouped by agentId and status
 router.get('/board', (_req, res) => {
-  const board = {};
+  const board = Object.create(null);
   
   cards.forEach(card => {
     if (!board[card.agentId]) {
-      board[card.agentId] = {};
+      board[card.agentId] = Object.create(null);
     }
     if (!board[card.agentId][card.status]) {
       board[card.agentId][card.status] = [];
