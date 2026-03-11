@@ -154,38 +154,38 @@ describe('validateBoardData', () => {
     const data = { ...validBoard };
     delete data.nextTicketNumber;
     expect(validateBoardData(data)).toBe(
-      'Missing or invalid "nextTicketNumber" (must be a positive number).',
+      'Missing or invalid "nextTicketNumber" (must be a positive integer).',
     );
   });
 
   it('rejects nextTicketNumber of 0', () => {
     expect(
       validateBoardData({ ...validBoard, nextTicketNumber: 0 }),
-    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
   });
 
   it('rejects nextTicketNumber as a string', () => {
     expect(
       validateBoardData({ ...validBoard, nextTicketNumber: '5' }),
-    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
   });
 
   it('rejects negative nextTicketNumber', () => {
     expect(
       validateBoardData({ ...validBoard, nextTicketNumber: -1 }),
-    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
   });
 
   it('rejects NaN nextTicketNumber', () => {
     expect(
       validateBoardData({ ...validBoard, nextTicketNumber: NaN }),
-    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
   });
 
   it('rejects Infinity nextTicketNumber', () => {
     expect(
       validateBoardData({ ...validBoard, nextTicketNumber: Infinity }),
-    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive number).');
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
   });
 
   // --- labelColors ---
