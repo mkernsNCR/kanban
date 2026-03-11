@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { nanoid } from 'nanban';
+import { nanoid } from 'nanoid';
 
 const router = Router();
 
@@ -94,6 +94,7 @@ router.post('/cards/:id/error', (req, res) => {
   };
 
   card.errors.push(error);
+  card.status = 'error';
   card.updatedAt = new Date().toISOString();
   cards.set(id, card);
   
