@@ -164,6 +164,12 @@ describe('validateBoardData', () => {
     ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
   });
 
+  it('rejects fractional nextTicketNumber', () => {
+    expect(
+      validateBoardData({ ...validBoard, nextTicketNumber: 1.5 }),
+    ).toBe('Missing or invalid "nextTicketNumber" (must be a positive integer).');
+  });
+
   it('rejects nextTicketNumber as a string', () => {
     expect(
       validateBoardData({ ...validBoard, nextTicketNumber: '5' }),
