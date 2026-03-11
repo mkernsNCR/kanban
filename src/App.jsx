@@ -23,7 +23,9 @@ const App = () => {
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6">
           <button
+            type="button"
             onClick={() => setActiveTab('board')}
+            aria-pressed={activeTab === 'board'}
             className="px-4 py-2 text-sm font-bold"
             style={{
               background: activeTab === 'board' ? COLORS.primary : '#3A3A3A',
@@ -37,7 +39,9 @@ const App = () => {
             📋 Kanban Board
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('agents')}
+            aria-pressed={activeTab === 'agents'}
             className="px-4 py-2 text-sm font-bold"
             style={{
               background: activeTab === 'agents' ? COLORS.primary : '#3A3A3A',

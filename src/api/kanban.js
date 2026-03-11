@@ -1,21 +1,20 @@
 import { Router } from 'express';
-import { nanoid } from 'nanoid';
-import type { Card, CardStatus, CardTier, CardError } from '../types/kanban.js';
+import { nanoid } from 'nanban';
 
 const router = Router();
 
 // In-memory storage
-const cards = new Map<string, Card>();
+const cards = new Map();
 
-// SSE clients
-const clients = new Set<ReadableStreamDefaultController>();
+// SSE clients - store Express Response objects
+const clients = new Set();
 
 // Broadcast to all SSE clients
-function broadcast(event: string, data: Card) {
+function broadcast(event, data) {
   const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   clients.forEach(client => {
     try {
-      client.enqueue(new TextEncoder().encode(message));
+      client.write(message);
     } catch {
       clients.delete(client);
     }
@@ -31,13 +30,13 @@ router.post('/cards', (req, res) => {
   }
 
   const now = new Date().toISOString();
-  const card: Card = {
+  const card = {
     id: nanoid(),
     agentId,
     taskId,
     title,
     payload,
-    tier: tier as CardTier,
+    tier,
     status: 'queued',
     errors: [],
     createdAt: now,
@@ -64,7 +63,7 @@ router.patch('/cards/:id/status', (req, res) => {
     return res.status(404).json({ error: 'Card not found' });
   }
 
-  card.status = status as CardStatus;
+  card.status = status;
   card.updatedAt = new Date().toISOString();
   cards.set(id, card);
   
@@ -87,7 +86,7 @@ router.post('/cards/:id/error', (req, res) => {
     return res.status(404).json({ error: 'Card not found' });
   }
 
-  const error: CardError = {
+  const error = {
     message,
     stack,
     timestamp: new Date().toISOString(),
@@ -105,7 +104,7 @@ router.post('/cards/:id/error', (req, res) => {
 
 // Get board - all cards grouped by agentId and status
 router.get('/board', (_req, res) => {
-  const board: Record<string, Record<string, Card[]>> = {};
+  const board = {};
   
   cards.forEach(card => {
     if (!board[card.agentId]) {
@@ -127,14 +126,14 @@ router.get('/stream', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const controller = res.write;
-  clients.add(controller as unknown as ReadableStreamDefaultController);
+  // Store the Express response object
+  clients.add(res);
 
   // Send initial connection event
   res.write(`event: connected\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`);
 
   req.on('close', () => {
-    clients.delete(controller as unknown as ReadableStreamDefaultController);
+    clients.delete(res);
   });
 });
 
