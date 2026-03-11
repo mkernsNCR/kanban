@@ -18,3 +18,9 @@ dist/
 
 # Generated recommendation data
 kanban-board-recommendations.json
+
+# Test fixtures
+test-fixtures/
+
+# Coverage reports
+coverage/

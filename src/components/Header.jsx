@@ -17,15 +17,15 @@ const Header = ({
 }) => {
   const fileInputRef = useRef(null);
   const [showAddColumn, setShowAddColumn] = useState(false);
-  const [showImportError, setShowImportError] = useState(false);
+  const [importError, setImportError] = useState(null);
 
   const handleFileImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const success = onImport(event.target.result);
-      if (!success) setShowImportError(true);
+      const result = onImport(event.target.result);
+      if (!result || result.error) setImportError(result?.error || 'Import failed');
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -231,14 +231,14 @@ const Header = ({
         />
       )}
 
-      {showImportError && (
+      {importError && (
         <Dialog
           title="Import Failed"
-          message="The selected file is not valid JSON. Please choose a file exported from this board."
+          message={importError}
           confirmLabel="OK"
           cancelLabel="DISMISS"
-          onConfirm={() => setShowImportError(false)}
-          onCancel={() => setShowImportError(false)}
+          onConfirm={() => setImportError(null)}
+          onCancel={() => setImportError(null)}
         />
       )}
     </div>
