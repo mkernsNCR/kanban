@@ -139,6 +139,15 @@ describe('validateBoardData', () => {
     ).toBe('Card "TKT-001" is missing a "title".');
   });
 
+  it('rejects a card whose id does not match its key', () => {
+    expect(
+      validateBoardData({
+        ...validBoard,
+        cards: { 'TKT-001': { id: 'TKT-999', title: 'X' } },
+      }),
+    ).toBe('Card key "TKT-001" does not match card.id "TKT-999".');
+  });
+
   // --- nextTicketNumber ---
 
   it('rejects missing nextTicketNumber', () => {

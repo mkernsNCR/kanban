@@ -270,7 +270,7 @@ describe('useBoardState', () => {
   // --- importData --------------------------------------------------------
 
   describe('importData', () => {
-    it('returns true and replaces state for valid JSON', () => {
+    it('returns { ok: true } and replaces state for valid JSON', () => {
       const { result } = renderHook(() => useBoardState());
 
       let importResult;
@@ -278,12 +278,12 @@ describe('useBoardState', () => {
         importResult = result.current.importData(JSON.stringify(validBoard));
       });
 
-      expect(importResult).toBe(true);
+      expect(importResult).toEqual({ ok: true });
       expect(result.current.boardState.columns).toHaveLength(2);
       expect(result.current.boardState.cards['TKT-001'].title).toBe('Test card');
     });
 
-    it('returns an error string for invalid JSON', () => {
+    it('returns { error } for invalid JSON', () => {
       const { result } = renderHook(() => useBoardState());
 
       let importResult;
@@ -291,10 +291,10 @@ describe('useBoardState', () => {
         importResult = result.current.importData('{not json}');
       });
 
-      expect(importResult).toBe('The selected file is not valid JSON.');
+      expect(importResult).toEqual({ error: 'The selected file is not valid JSON.' });
     });
 
-    it('returns a validation error for valid JSON with bad shape', () => {
+    it('returns { error } for valid JSON with bad shape', () => {
       const { result } = renderHook(() => useBoardState());
 
       let importResult;
@@ -302,8 +302,8 @@ describe('useBoardState', () => {
         importResult = result.current.importData(JSON.stringify({ foo: 'bar' }));
       });
 
-      expect(typeof importResult).toBe('string');
-      expect(importResult).toContain('columns');
+      expect(importResult).toHaveProperty('error');
+      expect(importResult.error).toContain('columns');
     });
   });
 
@@ -323,26 +323,29 @@ describe('useBoardState', () => {
           : originalCreateElement(tag, ...args),
       );
 
-      act(() => {
-        result.current.exportData();
-      });
+      try {
+        act(() => {
+          result.current.exportData();
+        });
 
-      expect(createElementSpy).toHaveBeenCalledWith('a');
+        expect(createElementSpy).toHaveBeenCalledWith('a');
 
-      // Verify href was set to a data URI containing the board JSON
-      const hrefCall = setAttributeSpy.mock.calls.find((c) => c[0] === 'href');
-      expect(hrefCall).toBeDefined();
-      const decodedUri = decodeURIComponent(hrefCall[1]);
-      expect(decodedUri).toContain('data:application/json');
-      expect(decodedUri).toContain(JSON.stringify(validBoard, null, 2));
+        // Verify href was set to a data URI containing the board JSON
+        const hrefCall = setAttributeSpy.mock.calls.find((c) => c[0] === 'href');
+        expect(hrefCall).toBeDefined();
+        const decodedUri = decodeURIComponent(hrefCall[1]);
+        expect(decodedUri).toContain('data:application/json');
+        expect(decodedUri).toContain(JSON.stringify(validBoard, null, 2));
 
-      // Verify download filename
-      const downloadCall = setAttributeSpy.mock.calls.find((c) => c[0] === 'download');
-      expect(downloadCall).toBeDefined();
-      expect(downloadCall[1]).toBe('kanban-board.json');
+        // Verify download filename
+        const downloadCall = setAttributeSpy.mock.calls.find((c) => c[0] === 'download');
+        expect(downloadCall).toBeDefined();
+        expect(downloadCall[1]).toBe('kanban-board.json');
 
-      expect(clickSpy).toHaveBeenCalled();
-      createElementSpy.mockRestore();
+        expect(clickSpy).toHaveBeenCalled();
+      } finally {
+        createElementSpy.mockRestore();
+      }
     });
   });
 });

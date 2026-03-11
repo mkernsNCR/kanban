@@ -22,8 +22,8 @@ export const validateBoardData = (data) => {
     if (typeof card.title !== 'string') return `Card "${id}" is missing a "title".`;
   }
 
-  if (!Number.isFinite(data.nextTicketNumber) || data.nextTicketNumber < 1)
-    return 'Missing or invalid "nextTicketNumber" (must be a positive number).';
+  if (!Number.isInteger(data.nextTicketNumber) || data.nextTicketNumber < 1)
+    return 'Missing or invalid "nextTicketNumber" (must be a positive integer).';
 
   if (!data.labelColors || typeof data.labelColors !== 'object' || Array.isArray(data.labelColors))
     return 'Missing or invalid "labelColors" object.';
@@ -224,14 +224,14 @@ export const useBoardState = () => {
     try {
       imported = JSON.parse(jsonString);
     } catch {
-      return 'The selected file is not valid JSON.';
+      return { error: 'The selected file is not valid JSON.' };
     }
 
     const error = validateBoardData(imported);
-    if (error) return error;
+    if (error) return { error };
 
     setBoardState(imported);
-    return true;
+    return { ok: true };
   }, []);
 
   return {

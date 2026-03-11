@@ -25,7 +25,7 @@ const Header = ({
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = onImport(event.target.result);
-      if (result !== true) setImportError(result || 'Import failed');
+      if (!result || result.error) setImportError(result?.error || 'Import failed');
     };
     reader.readAsText(file);
     e.target.value = '';
