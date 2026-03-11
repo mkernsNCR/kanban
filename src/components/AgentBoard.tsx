@@ -132,7 +132,7 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
           {task.status !== 'acknowledged' && (
             <button
               type="button"
-              onClick={() => onAcknowledge(task.taskId)}
+              onClick={() => onAcknowledge(task.id)}
               className="flex items-center gap-1 mt-2 px-3 py-1.5 text-[11px] font-bold"
               style={{
                 background: COLORS.warning,
@@ -152,7 +152,7 @@ const TaskCard = ({ task, isError, onToggleExpand, isExpanded, onAcknowledge }) 
 };
 
 const AgentBoard = () => {
-  const [boardState, setBoardState] = useState({ agents: {}, lastUpdate: null });
+  const [boardState, setBoardState] = useState({});
   const [expandedTasks, setExpandedTasks] = useState(new Set());
 
   // Fetch initial board state
@@ -199,12 +199,12 @@ const AgentBoard = () => {
     });
   }, []);
 
-  const handleAcknowledge = async (taskId) => {
+  const handleAcknowledge = async (cardId) => {
     try {
-      await fetch(`/api/kanban/cards/${taskId}/status`, {
+      await fetch(`/api/kanban/cards/${cardId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'acknowledged' }),
+        body: JSON.stringify({ status: 'done' }),
       });
     } catch (err) {
       console.error('Failed to acknowledge task:', err);
@@ -212,12 +212,12 @@ const AgentBoard = () => {
   };
 
   const getTasksByStatus = (agentId, status) => {
-    const agent = boardState.agents[agentId];
+    const agent = boardState[agentId];
     if (!agent) return [];
-    return agent.tasks?.filter((t) => t.status === status) || [];
+    return agent[status] || [];
   };
 
-  const agentIds = Object.keys(boardState.agents || {});
+  const agentIds = Object.keys(boardState);
 
   return (
     <div className="agent-board">
