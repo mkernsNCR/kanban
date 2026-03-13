@@ -179,23 +179,24 @@ const AgentBoard = () => {
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [acknowledgeError, setAcknowledgeError] = useState('');
 
+  const fetchBoard = useCallback(async () => {
+    try {
+      const res = await fetch('/api/kanban/board');
+      if (!res.ok) {
+        throw new Error(`Failed to fetch board: ${await getResponseErrorMessage(res)}`);
+      }
+
+      const data = (await res.json()) as BoardState;
+      setBoardState(data);
+    } catch (err) {
+      console.error('Failed to fetch board:', err);
+    }
+  }, []);
+
   // Fetch initial board state
   useEffect(() => {
-    const fetchBoard = async () => {
-      try {
-        const res = await fetch('/api/kanban/board');
-        if (!res.ok) {
-          throw new Error(`Failed to fetch board: ${await getResponseErrorMessage(res)}`);
-        }
-
-        const data = (await res.json()) as BoardState;
-        setBoardState(data);
-      } catch (err) {
-        console.error('Failed to fetch board:', err);
-      }
-    };
-    fetchBoard();
-  }, []);
+    void fetchBoard();
+  }, [fetchBoard]);
 
   // SSE connection
   useEffect(() => {
@@ -240,6 +241,7 @@ const AgentBoard = () => {
     eventSource.addEventListener('card-error', handleCardEvent);
     eventSource.addEventListener('connected', (event) => {
       console.log('SSE connected:', event.data);
+      void fetchBoard();
     });
 
     eventSource.onerror = (err) => {
@@ -248,7 +250,7 @@ const AgentBoard = () => {
     };
 
     return () => eventSource.close();
-  }, []);
+  }, [fetchBoard]);
 
   const toggleExpand = useCallback((cardId: string) => {
     setExpandedTasks((prev) => {
